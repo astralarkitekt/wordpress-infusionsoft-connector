@@ -1,32 +1,37 @@
 <?php
 /*
-Plugin Name: TODO
-Plugin URI: TODO
-Description: TODO
-Version: 1.0
-Author: TODO
-Author URI: TODO
-Author Email: TODO
-License:
-
-  Copyright 2012 TODO (email@domain.com)
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License, version 2, as 
-  published by the Free Software Foundation.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-  
+Plugin Name: Infusionsoft Plugin Boilerplate
+Plugin URI: http://innerbot.com/wordpress-plugins/infusionsoft-plugin-boilerplate
+Description: A simple WordPress Plugin for Developers that need to build plugins that consume the InfusionSoft API. 
+Version: 0.1
+Author: Greg Johnson
+Author URI: http://innerbot.com/ 
+Author Email: greg@innerbot.com
+License: GPL v3
 */
 
-// TODO: rename this class to a proper name for your plugin
+/**
+ * Copyright 2012, Greg Johnson(greg@innerbot.com). All rights reserved.
+ *
+ * Released under the GPL license
+ * http://www.opensource.org/licenses/gpl-license.php
+ *
+ * This is an add-on for WordPress
+ * http://wordpress.org/
+ *
+ * **********************************************************************
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * **********************************************************************
+ */
+
 class PluginName {
 	 
 	/*--------------------------------------------*

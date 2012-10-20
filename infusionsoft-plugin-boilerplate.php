@@ -32,7 +32,25 @@ License: GPL v3
  * **********************************************************************
  */
 
-class PluginName {
+// TODO: Replace the definition value below with YOUR InfusionSoft Vendor API Key
+// if you do not have one yet, you can get one here:
+// http://help.infusionsoft.com/developers/vendorkey
+define( 'INFUSIONVENDORKEY', '7df953fdfa57d53f68fed1a86b88fd5a' );
+
+/**
+ * Wrapper Class for Integrating Infusionsoft into Your WP Plugin
+ *
+ * The InfusionsoftConnector class allows you, the developer to 
+ * integrate InfusionSoft Functionality into your WordPress Plugin
+ * by extending this class and adding in your custom functionality
+ * 
+ * @package InfusionsoftConnector
+ * @since 0.1
+ * @version 0.1
+ * @link http://innerbot.com/wordpress-plugins/infusionsoft-plugin-boilerplate
+ * @author Greg Johnson 
+ */
+class InfusionsoftConnector {
 	 
 	/*--------------------------------------------*
 	 * Constructor
@@ -43,8 +61,8 @@ class PluginName {
 	 */
 	function __construct() {
 	
-		// TODO: replace "plugin-name-locale" with a unique value for your plugin
-		load_plugin_textdomain( 'plugin-name-locale', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+		// establish the text domain
+		load_plugin_textdomain( 'infusionsoft-connector', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 		
 		// Register admin styles and scripts
 		add_action( 'admin_print_styles', array( &$this, 'register_admin_styles' ) );
@@ -56,6 +74,7 @@ class PluginName {
 		
 		register_activation_hook( __FILE__, array( &$this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( &$this, 'deactivate' ) );
+		register_uninstall_hook( __FILE__, array(&$this, 'uninstall') );
 		
 	    /*
 	     * TODO:
@@ -166,4 +185,4 @@ class PluginName {
 } // end class
 
 // TODO: update the instantiation call of your plugin to the name given at the class definition
-new PluginName();
+new InfusionsoftConnector();

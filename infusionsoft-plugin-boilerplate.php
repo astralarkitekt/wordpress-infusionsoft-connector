@@ -68,10 +68,12 @@ class InfusionsoftConnector {
 	
 		// establish the text domain
 		load_plugin_textdomain( $this->text_domain, false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+
+		// register plugin settings
+		add_action('init', array( &$this, 'register_plugin_options') );
 		
 		// register a slug for the settings page (used by InfusionsoftConnector::register_settings_page )
 		$this->settings_page_slug = $this->plugin_pre . 'api_connection_settings';
-		
 		
 		// Register admin styles and scripts
 		add_action( 'admin_print_styles', array( &$this, 'register_admin_styles' ) );
@@ -86,7 +88,9 @@ class InfusionsoftConnector {
 		
 		register_activation_hook( __FILE__, array( &$this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( &$this, 'deactivate' ) );
-		register_uninstall_hook( __FILE__, array( &$this, 'uninstall') );
+
+		// Uncomment the line below if you wish to use an uninstall hook
+		// register_uninstall_hook( __FILE__, array( &$this, 'uninstall') );
 		
 	    /*
 	     * TODO:
@@ -121,7 +125,18 @@ class InfusionsoftConnector {
 	public function deactivate( $network_wide ) {
 		// TODO define deactivation functionality here		
 	} // end deactivate
+
+	public function uninstall() {
+		// TODO define uninstall functionality here
+	} // end uninstall method
 	
+	/**
+	 * Register your plugin's options/settings here
+	 */
+	public function register_plugin_options() {
+
+	} // end register_plugin_options
+
 	/**
 	 * Registers and enqueues admin-specific styles.
 	 */
@@ -184,6 +199,7 @@ class InfusionsoftConnector {
 		// array below 
 		$defaults = array();
 
+		// grab your plugin options 
 		$options = get_option($this->plugin_pre . 'settings', $defaults);
 
 		// edit the output of the settings page in views/admin.php

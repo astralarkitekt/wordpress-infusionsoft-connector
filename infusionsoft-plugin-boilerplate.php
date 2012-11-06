@@ -51,6 +51,11 @@ define( 'INFUSIONVENDORKEY', '7df953fdfa57d53f68fed1a86b88fd5a' );
  * @author Greg Johnson 
  */
 class InfusionsoftConnector {
+
+	public $settings_page_slug;
+	public $settings_page_hook;
+	public $plugin_pre = 'ibic_';
+	public $text_domain = 'ibiclang';
 	 
 	/*--------------------------------------------*
 	 * Constructor
@@ -62,7 +67,11 @@ class InfusionsoftConnector {
 	function __construct() {
 	
 		// establish the text domain
-		load_plugin_textdomain( 'infusionsoft-connector', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+		load_plugin_textdomain( $this->text_domain, false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+		
+		// register a slug for the settings page (used by InfusionsoftConnector::register_settings_page )
+		$this->settings_page_slug = $this->plugin_pre . 'api_connection_settings';
+		
 		
 		// Register admin styles and scripts
 		add_action( 'admin_print_styles', array( &$this, 'register_admin_styles' ) );
@@ -71,6 +80,9 @@ class InfusionsoftConnector {
 		// Register site styles and scripts
 		add_action( 'wp_enqueue_scripts', array( &$this, 'register_plugin_styles' ) );
 		add_action( 'wp_enqueue_scripts', array( &$this, 'register_plugin_scripts' ) );
+
+		// Register a Settings Page
+		add_action( 'admin_menu', array( &$this, 'register_settings_page' ) );
 		
 		register_activation_hook( __FILE__, array( &$this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( &$this, 'deactivate' ) );
@@ -87,8 +99,8 @@ class InfusionsoftConnector {
 	     * For more information: 
 	     * http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
 	     */
-	    add_action( 'TODO', array( $this, 'action_method_name' ) );
-	    add_filter( 'TODO', array( $this, 'filter_method_name' ) );
+	    //add_action( 'TODO', array( $this, 'action_method_name' ) );
+	    //add_filter( 'TODO', array( $this, 'filter_method_name' ) );
 
 	} // end constructor
 	
@@ -132,6 +144,10 @@ class InfusionsoftConnector {
 		wp_enqueue_script( 'infusionsoft-connector-admin-script' );
 	
 	} // end register_admin_scripts
+
+	public function register_settings_page() {
+		$this->settings_page_hook = add_options_page( __('InfusionSoft API', $this->text_domain ), __('Infusionsoft API Settings', $this->text_domain), 'manage_options', $this->settings_page_slug, 'render_settings_page' );
+	}
 	
 	/**
 	 * Registers and enqueues plugin-specific styles.
@@ -155,6 +171,42 @@ class InfusionsoftConnector {
 		wp_enqueue_script( 'infusionsoft-connector-plugin-script' );
 	
 	} // end register_plugin_scripts
+
+	/**
+	 * Outputs the InfusionsoftConnector Settings Page 
+	 */
+	public function render_settings_page() {
+
+		// ensure that we have an instance of the Infusionsoft API to Play with
+		if( !isset( $this->isdk ) ) $this->get_isdk();
+
+		// If your plugin requires default settings, use the defaults
+		// array below 
+		$defaults = array();
+
+		$options = get_option($this->plugin_pre . 'settings', $defaults);
+
+		// edit the output of the settings page in views/admin.php
+		include_once plugin_dir_path(__FILE__) . 'views/admin.php';
+	}
+
+	/**
+	 * Sets up an instance of Infusionsoft's API wrapper class if one
+	 * has not already been defined and assigns it to $this->isdk
+	 */
+	public function get_isdk() {
+		if( !class_exists('iSDK') )
+			require_once plugin_dir_path(__FILE__) . 'lib/isdk/isdk.php';
+		if( !$this->isdk instanceof iSDK ) {
+			
+			$this->isdk = new iSDK();
+		
+		} else {
+
+
+
+		}
+	}
 	
 	/*--------------------------------------------*
 	 * Core Functions

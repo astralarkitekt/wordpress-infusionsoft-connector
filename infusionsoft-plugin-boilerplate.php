@@ -74,7 +74,7 @@ class InfusionsoftConnector {
 		
 		register_activation_hook( __FILE__, array( &$this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( &$this, 'deactivate' ) );
-		register_uninstall_hook( __FILE__, array(&$this, 'uninstall') );
+		register_uninstall_hook( __FILE__, array( &$this, 'uninstall') );
 		
 	    /*
 	     * TODO:
@@ -115,9 +115,9 @@ class InfusionsoftConnector {
 	 */
 	public function register_admin_styles() {
 	
-		// TODO change 'plugin-name' to the name of your plugin
-		wp_register_style( 'plugin-name-admin-styles', plugins_url( 'plugin-name/css/admin.css' ) );
-		wp_enqueue_style( 'plugin-name-admin-styles' );
+		// I've provided a default admin stylesheet specifically for this plugin, here
+		wp_register_style( 'infusionsoft-connector-admin-styles', plugins_url( 'infusionsoft-plugin-boilerplate/css/admin.css' ) );
+		wp_enqueue_style( 'infusionsoft-connector-admin-styles' );
 	
 	} // end register_admin_styles
 
@@ -126,9 +126,10 @@ class InfusionsoftConnector {
 	 */	
 	public function register_admin_scripts() {
 	
-		// TODO change 'plugin-name' to the name of your plugin
-		wp_register_script( 'plugin-name-admin-script', plugins_url( 'plugin-name/js/admin.js' ) );
-		wp_enqueue_script( 'plugin-name-admin-script' );
+		// I've provided a default admin javascript file specifically for this plugin, here
+		// If needed, replace with your own!
+		wp_register_script( 'infusionsoft-connector-admin-script', plugins_url( 'infusionsoft-plugin-boilerplate/js/admin.js' ) );
+		wp_enqueue_script( 'infusionsoft-connector-admin-script' );
 	
 	} // end register_admin_scripts
 	
@@ -137,9 +138,10 @@ class InfusionsoftConnector {
 	 */
 	public function register_plugin_styles() {
 	
-		// TODO change 'plugin-name' to the name of your plugin
-		wp_register_style( 'plugin-name-plugin-styles', plugins_url( 'plugin-name/css/display.css' ) );
-		wp_enqueue_style( 'plugin-name-plugin-styles' );
+		// I've also included a default stylesheet for the frontend as well
+		// If needed, replace with your own!
+		wp_register_style( 'infusionsoft-connector-plugin-styles', plugins_url( 'infusionsoft-plugin-boilerplate/css/display.css' ) );
+		wp_enqueue_style( 'infusionsoft-connector-plugin-styles' );
 	
 	} // end register_plugin_styles
 	
@@ -148,9 +150,9 @@ class InfusionsoftConnector {
 	 */
 	public function register_plugin_scripts() {
 	
-		// TODO change 'plugin-name' to the name of your plugin
-		wp_register_script( 'plugin-name-plugin-script', plugins_url( 'plugin-name/js/display.js' ) );
-		wp_enqueue_script( 'plugin-name-plugin-script' );
+		// Here is a default javascript file for this plugin that runs on the frontend.
+		wp_register_script( 'infusionsoft-connector-plugin-script', plugins_url( 'infusionsoft-plugin-boilerplate/js/display.js' ) );
+		wp_enqueue_script( 'infusionsoft-connector-plugin-script' );
 	
 	} // end register_plugin_scripts
 	

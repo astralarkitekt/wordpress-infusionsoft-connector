@@ -1,1 +1,29 @@
-/* This stylesheet is used to style the admin option form of the widget. */
+form.infusionsoft-settings-page {
+	font-size: 16px;
+	max-width: 720px;
+}
+
+form.infusionsoft-settings-page table.form-table {
+	display: none;
+}
+
+form.infusionsoft-settings-page .form-row {
+	margin-bottom: 1em;
+	border-bottom: 1px dotted #666;
+}
+
+form.infusionsoft-settings-page .form-row:last-child {
+	border-bottom: 0;
+}
+
+form.infusionsoft-settings-page .form-row label {
+	font-weight: bold;
+	display: inline-block;
+	margin-right: 3em;
+}
+
+form.infusionsoft-settings-page .form-row .description {
+	font-size: 11px;
+	color: #666;
+	padding: 1em 0;
+}

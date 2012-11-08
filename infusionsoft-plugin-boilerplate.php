@@ -245,7 +245,11 @@ class InfusionsoftConnector {
 
 		// If your plugin requires default settings, use the defaults
 		// array below 
-		$this->default_options = array();
+		$this->default_options = array(
+			'infusionsoft_application_name' => '',
+			'infusionsoft_username' => '',
+			'infusionsoft_password' => ''
+			);
 
 		// grab your plugin options 
 		$this->options = get_option($this->plugin_pre . 'settings', $this->default_options);
@@ -278,7 +282,6 @@ class InfusionsoftConnector {
 	
 	// Dummy function for WP SETTINGS API Workaround
 	public function render_null() {}
-
 
 	/**
 	 * Clean your settings before storing in the Database.

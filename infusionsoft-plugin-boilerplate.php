@@ -62,6 +62,7 @@ class InfusionsoftConnector {
 	public $settings_page_hook;
 	public $plugin_pre = 'ibic_';
 	public $text_domain = 'ibiclang';
+	public $isdk; // Holds an instance of the PHP Infusionsoft API
 	 
 	/*--------------------------------------------*
 	 * Constructor
@@ -296,7 +297,7 @@ class InfusionsoftConnector {
 		if( !class_exists('iSDK') )
 			require_once plugin_dir_path(__FILE__) . 'lib/isdk/isdk.php';
 
-		if( !$this->isdk instanceof iSDK ) 
+		if( !isset($this->isdk) ) 
 			$this->isdk = new iSDK();
 
 		return true;

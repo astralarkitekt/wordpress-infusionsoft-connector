@@ -74,12 +74,13 @@ class InfusionsoftConnector {
 	
 		// establish the text domain
 		load_plugin_textdomain( $this->text_domain, false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+		
+		// register a slug for the settings page (used by InfusionsoftConnector::register_settings_page )
+		$this->settings_page_slug = $this->plugin_pre . 'api_connection_settings';
 
 		// register plugin settings
 		add_action('admin_init', array( &$this, 'register_plugin_options') );
 		
-		// register a slug for the settings page (used by InfusionsoftConnector::register_settings_page )
-		$this->settings_page_slug = $this->plugin_pre . 'api_connection_settings';
 		
 		// Register admin styles and scripts
 		add_action( 'admin_print_styles', array( &$this, 'register_admin_styles' ) );
@@ -152,7 +153,7 @@ class InfusionsoftConnector {
 		// some code to remove the resulting empty table from the bottom of our settings page.
 		// It's not perfect, but it keeps our BoilerPlate class nice & clean while also
 		// making the front-end coding of the form a lot more fluid.
-		add_settings_section($this->plugin_pre . 'settings', '', array( $this, 'render_settings_page'), $this->settings_page_slug );
+		add_settings_section($this->plugin_pre . 'settings', '', array( &$this, 'render_settings_page'), $this->settings_page_slug );
 
 			// To make use of the new(ish) Vendor Key style connections, 
 			// you'll want to store - at least - these three fields
@@ -160,9 +161,9 @@ class InfusionsoftConnector {
 			// from infusionsoft here: http://help.infusionsoft.com/developers/vendorkey
 			// Once Infusionsoft has provided you with a vendor key, be sure to define
 			// it above (just below the plugin header & license in this file)
-			add_settings_field('infusionsoft_application_name', '', array($this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
-			add_settings_field('infusionsoft_username', '', array($this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
-			add_settings_field('infusionsoft_password', '', array($this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			add_settings_field('infusionsoft_application_name', '', array( &$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			add_settings_field('infusionsoft_username', '', array( &$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			add_settings_field('infusionsoft_password', '', array( &$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
 
 			// To use the original API Key style connection, comment out
 			// the three lines above, then uncomment the lines below to use 
@@ -197,8 +198,11 @@ class InfusionsoftConnector {
 	
 	} // end register_admin_scripts
 
+	/**
+	 * Creates an Admin Page to Manage Connection Settings to the Infusionsoft API
+	 */
 	public function register_settings_page() {
-		$this->settings_page_hook = add_options_page( __('InfusionSoft API', $this->text_domain ), __('Infusionsoft API Settings', $this->text_domain), 'manage_options', $this->settings_page_slug, 'render_settings_page' );
+		$this->settings_page_hook = add_options_page( __('InfusionSoft API', $this->text_domain ), __('Infusionsoft API Settings', $this->text_domain), 'manage_options', $this->settings_page_slug, array( &$this, 'render_settings_wrapper' ) );
 	}
 	
 	/**

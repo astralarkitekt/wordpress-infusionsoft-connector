@@ -35,7 +35,13 @@ License: GPL v3
 // TODO: Replace the definition value below with YOUR InfusionSoft Vendor API Key
 // if you do not have one yet, you can get one here:
 // http://help.infusionsoft.com/developers/vendorkey
+// Comment Out if Using Traditional API-Key style calls
 define( 'INFUSIONVENDORKEY', '7df953fdfa57d53f68fed1a86b88fd5a' );
+
+// Valid values:
+// 'cfgCon' - use the traditional API-KEY method
+// 'vendorCon' - connect using a vendor Key (default)
+define( 'INFUSIONAUTHMETHOD', 'vendorCon' );
 
 /**
  * Wrapper Class for Integrating Infusionsoft into Your WP Plugin
@@ -70,7 +76,7 @@ class InfusionsoftConnector {
 		load_plugin_textdomain( $this->text_domain, false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
 		// register plugin settings
-		add_action('init', array( &$this, 'register_plugin_options') );
+		add_action('admin_init', array( &$this, 'register_plugin_options') );
 		
 		// register a slug for the settings page (used by InfusionsoftConnector::register_settings_page )
 		$this->settings_page_slug = $this->plugin_pre . 'api_connection_settings';
@@ -135,8 +141,8 @@ class InfusionsoftConnector {
 	 */
 	public function register_plugin_options() {
 
-		// all of our plugin settings will be wrapped inside of here
-		register_setting($this->plugin_pre . 'settings', $this->plugin_pre . 'settings' );
+		// all of our plugin settings will be wrapped inside of this option as an array
+		register_setting($this->plugin_pre . 'settings', $this->plugin_pre . 'settings', array( &$this, 'sanitize_settings') );
 
 		// We're going to use a work-around on the Settings API and render all the settings for this
 		// section in one function so that we can have more control over the design.
@@ -146,7 +152,7 @@ class InfusionsoftConnector {
 		// some code to remove the resulting empty table from the bottom of our settings page.
 		// It's not perfect, but it keeps our BoilerPlate class nice & clean while also
 		// making the front-end coding of the form a lot more fluid.
-		add_settings_section($this->plugin_pre . 'settings', '', array(&$this, 'render_settings_page'), $this->settings_page_slug );
+		add_settings_section($this->plugin_pre . 'settings', '', array( $this, 'render_settings_page'), $this->settings_page_slug );
 
 			// To make use of the new(ish) Vendor Key style connections, 
 			// you'll want to store - at least - these three fields
@@ -154,9 +160,9 @@ class InfusionsoftConnector {
 			// from infusionsoft here: http://help.infusionsoft.com/developers/vendorkey
 			// Once Infusionsoft has provided you with a vendor key, be sure to define
 			// it above (just below the plugin header & license in this file)
-			add_settings_field('infusionsoft_application_name', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
-			add_settings_field('infusionsoft_username', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
-			add_settings_field('infusionsoft_password', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			add_settings_field('infusionsoft_application_name', '', array($this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			add_settings_field('infusionsoft_username', '', array($this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			add_settings_field('infusionsoft_password', '', array($this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
 
 			// To use the original API Key style connection, comment out
 			// the three lines above, then uncomment the lines below to use 
@@ -223,6 +229,12 @@ class InfusionsoftConnector {
 	 */
 	public function render_settings_wrapper() {
 
+		global $current_user;
+		get_current_user();
+
+		if( ! current_user_can('manage_options') )
+			wp_die('Y u no Admin? Only Admin come in here!');
+
 		// ensure that we have an instance of the Infusionsoft API to Play with
 		if( !isset( $this->isdk ) ) $this->get_isdk();
 
@@ -241,6 +253,12 @@ class InfusionsoftConnector {
 	 * Outputs the primary settings section associated with the settings page
 	 */
 	public function render_settings_page() {
+		global $current_user;
+		get_current_user();
+
+		if( ! current_user_can('manage_options') )
+			wp_die('Y u no Admin? Only Admin come in here!');
+
 		// ensure that we have an instance of the Infusionsoft API to Play with
 		if( !isset( $this->isdk ) ) $this->get_isdk();
 
@@ -250,6 +268,20 @@ class InfusionsoftConnector {
 
 		// grab the settings section page fragment and output to user
 		include_once plugin_dir_path(__FILE__) . 'views/_settings_page_form.php';
+
+	}
+	
+	// Dummy function for WP SETTINGS API Workaround
+	public function render_null() {}
+
+
+	/**
+	 * Clean your settings before storing in the Database.
+	 * @param  Array $setting
+	 * @return Array
+	 */
+	public function sanitize_settings( $setting ) {
+		return $setting;
 	}
 
 	/**

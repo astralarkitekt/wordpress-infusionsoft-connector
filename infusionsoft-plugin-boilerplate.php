@@ -135,6 +135,37 @@ class InfusionsoftConnector {
 	 */
 	public function register_plugin_options() {
 
+		// all of our plugin settings will be wrapped inside of here
+		register_setting($this->plugin_pre . 'settings', $this->plugin_pre . 'settings' );
+
+		// We're going to use a work-around on the Settings API and render all the settings for this
+		// section in one function so that we can have more control over the design.
+		// We'll use this boilerplate's render_settings_page() method for the below call to
+		// add_settings_section, and for each field we will pass the render_null() method
+		// to output nothing for each individual field. Our admin.js javascript will contain
+		// some code to remove the resulting empty table from the bottom of our settings page.
+		// It's not perfect, but it keeps our BoilerPlate class nice & clean while also
+		// making the front-end coding of the form a lot more fluid.
+		add_settings_section($this->plugin_pre . 'settings', '', array(&$this, 'render_settings_page'), $this->settings_page_slug );
+
+			// To make use of the new(ish) Vendor Key style connections, 
+			// you'll want to store - at least - these three fields
+			// To use this method you should have already obtained a Vendor Key
+			// from infusionsoft here: http://help.infusionsoft.com/developers/vendorkey
+			// Once Infusionsoft has provided you with a vendor key, be sure to define
+			// it above (just below the plugin header & license in this file)
+			add_settings_field('infusionsoft_application_name', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			add_settings_field('infusionsoft_username', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			add_settings_field('infusionsoft_password', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+
+			// To use the original API Key style connection, comment out
+			// the three lines above, then uncomment the lines below to use 
+			// the API Key style connection instead
+			// add_settings_field('infusionsoft_api_key', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			// add_settings_field('infusionsoft_application_name', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+
+		
+
 	} // end register_plugin_options
 
 	/**
@@ -190,20 +221,35 @@ class InfusionsoftConnector {
 	/**
 	 * Outputs the InfusionsoftConnector Settings Page 
 	 */
-	public function render_settings_page() {
+	public function render_settings_wrapper() {
 
 		// ensure that we have an instance of the Infusionsoft API to Play with
 		if( !isset( $this->isdk ) ) $this->get_isdk();
 
 		// If your plugin requires default settings, use the defaults
 		// array below 
-		$defaults = array();
+		$this->default_options = array();
 
 		// grab your plugin options 
-		$options = get_option($this->plugin_pre . 'settings', $defaults);
+		$this->options = get_option($this->plugin_pre . 'settings', $this->default_options);
 
-		// edit the output of the settings page in views/admin.php
-		include_once plugin_dir_path(__FILE__) . 'views/admin.php';
+		// edit the output of the settings page in views/settings_page.php
+		include_once plugin_dir_path(__FILE__) . 'views/settings_page.php';
+	}
+
+	/**
+	 * Outputs the primary settings section associated with the settings page
+	 */
+	public function render_settings_page() {
+		// ensure that we have an instance of the Infusionsoft API to Play with
+		if( !isset( $this->isdk ) ) $this->get_isdk();
+
+		// make sure the options have been initialised
+		if( !isset( $this->options ) )
+			get_options( $this->plugin_pre . 'settings', $this->default_options );
+
+		// grab the settings section page fragment and output to user
+		include_once plugin_dir_path(__FILE__) . 'views/_settings_page_form.php';
 	}
 
 	/**
@@ -213,15 +259,11 @@ class InfusionsoftConnector {
 	public function get_isdk() {
 		if( !class_exists('iSDK') )
 			require_once plugin_dir_path(__FILE__) . 'lib/isdk/isdk.php';
-		if( !$this->isdk instanceof iSDK ) {
-			
+
+		if( !$this->isdk instanceof iSDK ) 
 			$this->isdk = new iSDK();
-		
-		} else {
 
-
-
-		}
+		return true;
 	}
 	
 	/*--------------------------------------------*

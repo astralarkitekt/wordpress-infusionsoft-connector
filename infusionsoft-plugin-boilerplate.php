@@ -203,7 +203,7 @@ class InfusionsoftConnector {
 	 * Creates an Admin Page to Manage Connection Settings to the Infusionsoft API
 	 */
 	public function register_settings_page() {
-		$this->settings_page_hook = add_options_page( __('InfusionSoft API', $this->text_domain ), __('Infusionsoft API Settings', $this->text_domain), 'manage_options', $this->settings_page_slug, array( &$this, 'render_settings_wrapper' ) );
+		$this->settings_page_hook = add_options_page( __('Infusionsoft API Settings', $this->text_domain), __('InfusionSoft API', $this->text_domain ), 'manage_options', $this->settings_page_slug, array( &$this, 'render_settings_wrapper' ) );
 	}
 	
 	/**
@@ -273,7 +273,7 @@ class InfusionsoftConnector {
 
 		// make sure the options have been initialised
 		if( !isset( $this->options ) )
-			get_options( $this->plugin_pre . 'settings', $this->default_options );
+			$this->options = get_options( $this->plugin_pre . 'settings', $this->default_options );
 
 		// grab the settings section page fragment and output to user
 		include_once plugin_dir_path(__FILE__) . 'views/_settings_page_form.php';

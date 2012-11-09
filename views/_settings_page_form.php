@@ -11,12 +11,12 @@
 
 <div class="form-row">
 	<label for="username">Application Username</label>
-	<input type="text" name="<?php echo $this->plugin_pre . 'settings'; ?>[infusionsoft_username]" id="username" value="<?php esc_attr( $options['infusionsoft_username'] ); ?>">
+	<input type="text" name="<?php echo $this->plugin_pre . 'settings'; ?>[infusionsoft_username]" id="username" value="<?php esc_attr( $options['infusionsoft_username'] ); ?>" autocomplete="off">
 	<div class="description">This is the username you use to log in to your Infusionsoft Application</div>
 </div>
 
 <div class="form-row">
 	<label for="password">Application Password</label>
-	<input type="password" name="<?php echo $this->plugin_pre . 'settings'; ?>[infusionsoft_password]" id="password" value="<?php esc_attr( $options['infusionsoft_password'] ); ?>">
+	<input type="password" name="<?php echo $this->plugin_pre . 'settings'; ?>[infusionsoft_password]" id="password" value="<?php esc_attr( $options['infusionsoft_password'] ); ?>" autocomplete="off">
 	<div class="description">This is the password you use to log in to your Infusionsoft Application</div>
 </div>

@@ -254,6 +254,33 @@ class InfusionsoftConnector {
 		// grab your plugin options 
 		$this->options = get_option($this->plugin_pre . 'settings', $this->default_options);
 
+		// this var tells us if we're ready to attempt a connection
+		// by simply checking to ensure all fields starting with 'infusionsoft_'
+		// are not empty.
+		$ready = true;
+		foreach( $this->options as $field => $option ) {
+
+			// not a field related to connecting via API, so move on
+			if( strpos($field, 'infusionsoft_') === FALSE )
+				continue;
+
+			// if the option is empty, we're missing Connection info,
+			// set not ready = true and break.
+			if( empty( $option ) )
+				$ready = false;
+				break;
+		}
+
+		if( !$ready ) {
+
+			//add_action('admin_notice', );
+
+		} else {
+
+
+
+		}
+
 		// edit the output of the settings page in views/settings_page.php
 		include_once plugin_dir_path(__FILE__) . 'views/settings_page.php';
 	}

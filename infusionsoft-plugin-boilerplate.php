@@ -72,9 +72,9 @@ class InfusionsoftConnector {
 	 * Initializes the plugin by setting localization, filters, and administration functions.
 	 */
 	function __construct() {
-	
+
 		// establish the text domain
-		load_plugin_textdomain( $this->text_domain, false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+		add_action('init', array( $this, 'textdomain') );
 		
 		// register a slug for the settings page (used by InfusionsoftConnector::register_settings_page )
 		$this->settings_page_slug = $this->plugin_pre . 'api_connection_settings';
@@ -115,6 +115,14 @@ class InfusionsoftConnector {
 	    //add_filter( 'TODO', array( $this, 'filter_method_name' ) );
 
 	} // end constructor
+
+	/**
+	 * Loads the plugin text domain for translation
+	 */
+	public function textdomain() {
+		// TODO: Make sure that you've set the instance variable $text_domain above to your text domain
+		load_plugin_textdomain( $this->text_domain, false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+	}
 	
 	/**
 	 * Fired when the plugin is activated.
@@ -182,7 +190,7 @@ class InfusionsoftConnector {
 	public function register_admin_styles() {
 	
 		// I've provided a default admin stylesheet specifically for this plugin, here
-		wp_register_style( 'infusionsoft-connector-admin-styles', plugins_url( 'infusionsoft-plugin-boilerplate/css/admin.css' ) );
+		wp_register_style( 'infusionsoft-connector-admin-styles', plugins_url('css/admin.css', __FILE__ ) );
 		wp_enqueue_style( 'infusionsoft-connector-admin-styles' );
 	
 	} // end register_admin_styles
@@ -194,7 +202,7 @@ class InfusionsoftConnector {
 	
 		// I've provided a default admin javascript file specifically for this plugin, here
 		// If needed, replace with your own!
-		wp_register_script( 'infusionsoft-connector-admin-script', plugins_url( 'infusionsoft-plugin-boilerplate/js/admin.js' ) );
+		wp_register_script( 'infusionsoft-connector-admin-script', plugins_url('js/admin.js', __FILE__ ) );
 		wp_enqueue_script( 'infusionsoft-connector-admin-script' );
 	
 	} // end register_admin_scripts
@@ -213,7 +221,7 @@ class InfusionsoftConnector {
 	
 		// I've also included a default stylesheet for the frontend as well
 		// If needed, replace with your own!
-		wp_register_style( 'infusionsoft-connector-plugin-styles', plugins_url( 'infusionsoft-plugin-boilerplate/css/display.css' ) );
+		wp_register_style( 'infusionsoft-connector-plugin-styles', plugins_url('css/display.css', __FILE__ ) );
 		wp_enqueue_style( 'infusionsoft-connector-plugin-styles' );
 	
 	} // end register_plugin_styles
@@ -224,7 +232,7 @@ class InfusionsoftConnector {
 	public function register_plugin_scripts() {
 	
 		// Here is a default javascript file for this plugin that runs on the frontend.
-		wp_register_script( 'infusionsoft-connector-plugin-script', plugins_url( 'infusionsoft-plugin-boilerplate/js/display.js' ) );
+		wp_register_script( 'infusionsoft-connector-plugin-script', plugins_url('js/display.js', __FILE__ ) );
 		wp_enqueue_script( 'infusionsoft-connector-plugin-script' );
 	
 	} // end register_plugin_scripts
@@ -364,4 +372,4 @@ class InfusionsoftConnector {
 } // end class
 
 // TODO: update the instantiation call of your plugin to the name given at the class definition
-new InfusionsoftConnector();
+$ibic = new InfusionsoftConnector();

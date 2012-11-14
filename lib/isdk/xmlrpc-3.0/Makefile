@@ -1,123 +1,80 @@
-# Makefile for phpxmlrpc library
-# $Id: Makefile,v 1.37 2008/03/06 22:37:19 ggiunta Exp $
+# $Id: Makefile,v 1.13 2008/03/07 13:01:55 ggiunta Exp $
 
 ### USER EDITABLE VARS ###
 
-# path to PHP executable, preferably CLI version
-PHP=/usr/local/bin/php
+WEB=/var/www/xmlrpc/doc
 
-# path were xmlrpc lib files will be copied to
-PHPINCLUDEDIR=/usr/local/lib/php
-
-# mkdir is a thorny beast under windows: make sure we can not use the cmd version, running eg. "make MKDIR=mkdir.exe"
 MKDIR=mkdir
 
-#find too
-FIND=find
+PHP=php
+
+FOP=fop
+
+PHPDOC=phpdoc
 
 
 #### DO NOT TOUCH FROM HERE ONWARDS ###
 
-# recover version number from code
-# thanks to Firman Pribadi for unix command line help
-#   on unix shells lasts char should be \\2/g )
-export VERSION=$(shell egrep "\$GLOBALS *\[ *'xmlrpcVersion' *\] *= *'" lib/xmlrpc.inc | sed -r s/"(.*= *' *)([0-9a-zA-Z.-]+)(.*)"/\2/g )
-
-LIBFILES=lib/xmlrpc.inc lib/xmlrpcs.inc lib/xmlrpc_wrappers.inc
-
-EXTRAFILES=extras/test.pl \
- extras/test.py \
- extras/rsakey.pem \
- extras/workspace.testPhpServer.fttb
-
-DEMOFILES=demo/vardemo.php \
- demo/demo1.txt \
- demo/demo2.txt \
- demo/demo3.txt
-
-DEMOSFILES=demo/server/discuss.php \
- demo/server/server.php \
- demo/server/proxy.php
-
-DEMOCFILES=demo/client/agesort.php \
- demo/client/client.php \
- demo/client/comment.php \
- demo/client/introspect.php \
- demo/client/mail.php \
- demo/client/simple_call.php \
- demo/client/which.php \
- demo/client/wrap.php \
- demo/client/zopetest.php
-
-TESTFILES=test/testsuite.php \
- test/benchmark.php \
- test/parse_args.php \
- test/phpunit.php \
- test/verify_compat.php \
- test/PHPUnit/*.php
-
-INFOFILES=Changelog \
- Makefile \
- NEWS \
- README
-
-DEBUGGERFILES=debugger/index.php \
- debugger/action.php \
- debugger/common.php \
- debugger/controller.php
-
-
-all: install
-
 install:
-	cd lib && cp ${LIBFILES} ${PHPINCLUDEDIR}
-	@echo Lib files have been copied to ${PHPINCLUDEDIR}
-	cd doc && $(MAKE) install
-
-test:
-	cd test && ${PHP} -q testsuite.php
+	${MKDIR} -p ${WEB}
+	cp *.html ${WEB}
+	cp *.css ${WEB}
+	cp *.gif ${WEB}
+	@echo HTML version of the manual has been installed to ${WEB}
 
 
 ### the following targets are to be used for library development ###
 
-# make tag target: tag existing working copy as release in cvs.
-# todo: convert dots in underscore in $VERSION
-tag:
-	cvs -q tag -p release_${VERSION}
+doc: out/index.html xmlrpc_php.pdf javadoc-out/index.html
 
-dist: xmlrpc-${VERSION}.zip xmlrpc-${VERSION}.tar.gz
+# tools currently used in building docs: php 5 with xsl extension, apache fop, phpdocumentor
+# alternatives include doxygen, jade, saxon, xsltproc etc...
 
-xmlrpc-${VERSION}.zip xmlrpc-${VERSION}.tar.gz: ${LIBFILES} ${DEBUGGERFILES} ${INFOFILES} ${TESTFILES} ${EXTRAFILES} ${DEMOFILES} ${DEMOSFILES} ${DEMOCFILES}
-	@echo ---${VERSION}---
-	rm -rf xmlrpc-${VERSION}
-	${MKDIR} xmlrpc-${VERSION}
-	${MKDIR} xmlrpc-${VERSION}/demo
-	${MKDIR} xmlrpc-${VERSION}/demo/client
-	${MKDIR} xmlrpc-${VERSION}/demo/server
-	${MKDIR} xmlrpc-${VERSION}/test
-	${MKDIR} xmlrpc-${VERSION}/test/PHPUnit
-	${MKDIR} xmlrpc-${VERSION}/extras
-	${MKDIR} xmlrpc-${VERSION}/lib
-	${MKDIR} xmlrpc-${VERSION}/debugger
-	cp --parents ${DEMOFILES} xmlrpc-${VERSION}
-	cp --parents ${DEMOCFILES} xmlrpc-${VERSION}
-	cp --parents ${DEMOSFILES} xmlrpc-${VERSION}
-	cp --parents ${TESTFILES} xmlrpc-${VERSION}
-	cp --parents ${EXTRAFILES} xmlrpc-${VERSION}
-	cp --parents ${LIBFILES} xmlrpc-${VERSION}
-	cp --parents ${DEBUGGERFILES} xmlrpc-${VERSION}
-	cp ${INFOFILES} xmlrpc-${VERSION}
-	cd doc && $(MAKE) dist
-#   on unix shells last char should be \;
-	${FIND} xmlrpc-${VERSION} -type f ! -name "*.fttb" ! -name "*.pdf" ! -name "*.gif" -exec dos2unix {} ;
-	-rm xmlrpc-${VERSION}.zip xmlrpc-${VERSION}.tar.gz
-	tar -cvf xmlrpc-${VERSION}.tar xmlrpc-${VERSION}
-	gzip xmlrpc-${VERSION}.tar
-	zip -r xmlrpc-${VERSION}.zip xmlrpc-${VERSION}
+out/index.html xmlrpc_php.pdf: xmlrpc_php.xml
+	-${MKDIR} out
+# Jade cmd yet to be rebuilt, starting from xml file and putting output in ./out dir, e.g.
+#	jade -t xml -d custom.dsl xmlrpc_php.xml
+#
+# convertdoc command for xmlmind xxe editor
+#	convertdoc docb.toHTML xmlrpc_php.xml -u out
+#
+# saxon + xerces xml parser + saxon extensions + xslthl: adds a little syntax highligting
+# (bold and italics only, no color) for php source examples...
+#	java \
+#	-classpath c:\programmi\saxon\saxon.jar\;c:\programmi\saxon\xslthl.jar\;c:\programmi\xerces\xercesImpl.jar\;C:\htdocs\xmlrpc_cvs\docbook-xsl\extensions\saxon65.jar \
+#	-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl \
+#	-Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl \
+#	-Dxslthl.config=file:///c:/htdocs/xmlrpc_cvs/docbook-xsl/highlighting/xslthl-config.xml \
+#	com.icl.saxon.StyleSheet -o xmlrpc_php.fo.xml xmlrpc_php.xml custom.fo.xsl use.extensions=1
+#
+#	custom php script that does the xslt magic
+	${PHP} convert.php xmlrpc_php.xml custom.xsl out/
+#	post process html files to highlight php code samples
+	${PHP} highlight.php out
+#	convert to fo and then to pdf using apache fop
+	${PHP} convert.php xmlrpc_php.xml custom.fo.xsl xmlrpc_php.fo.xml
+	${FOP} xmlrpc_php.fo.xml xmlrpc_php.pdf
+#	-rm xmlrpc_php.fo.xml
 
-doc:
-	cd doc && $(MAKE) doc
+javadoc-out/index.html: ../lib/xmlrpc.inc ../lib/xmlrpcs.inc ../lib/xmlrpc_wrappers.inc
+# generate docs out of javadoc via doxygen
+#	doxygen phpxmlrpc.dox
+#
+#	generate docs out of javadoc via phpdocumentor
+	${PHPDOC} -f ../lib/xmlrpc.inc,../lib/xmlrpcs.inc,../lib/xmlrpc_wrappers.inc -t javadoc-out -ti PHP-XMLRPC -o HTML:frames:default -s
+
+dist: doc
+	${MKDIR} -p ../xmlrpc-${VERSION}/doc
+	-cp out/*.html ../xmlrpc-${VERSION}/doc
+	-cp out/*.css ../xmlrpc-${VERSION}/doc
+	-cp out/*.gif ../xmlrpc-${VERSION}/doc
+	-cp out/*.pdf ../xmlrpc-${VERSION}/doc
+	cp xmlrpc_php.xml ../xmlrpc-${VERSION}/doc
+	cp xmlrpc_php.pdf ../xmlrpc-${VERSION}/doc
+	cp Makefile ../xmlrpc-${VERSION}/doc
 
 clean:
-	rm -rf xmlrpc-${VERSION} xmlrpc-${VERSION}.zip xmlrpc-${VERSION}.tar.gz
-	cd doc && $(MAKE) clean
+	-rm -f out/*.html
+	-rm -rf javadoc-out
+	-rm xmlrpc_php.fo.xml
+	-rm xmlrpc_php.pdf

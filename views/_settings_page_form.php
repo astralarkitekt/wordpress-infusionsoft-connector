@@ -1,3 +1,4 @@
+<div id="connection-status">Status: <?php echo $this->get_connection_status(); ?></div>
 <h3>Set Up Your API Connection to Your Infusionsoft App</h3>
 
 <p>Before WordPress can start talking to Infusionsoft, we need a few key pieces of information.</p>

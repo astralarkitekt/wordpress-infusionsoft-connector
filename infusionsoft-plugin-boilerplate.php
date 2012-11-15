@@ -342,6 +342,10 @@ class InfusionsoftConnector {
 
 	}
 
+	public function get_connection_status() {
+		//TODO: Implement ME!
+	}
+
 	public function flie_permissions_nag() {
 	?>
 	<div class="error">Please <a href="http://codex.wordpress.org/Changing_File_Permissions" target="_blank">check the Permissions</a> on your plugins directory. We can't write your API Connection string to the file required by the Infusionsoft API: <code><?php echo plugin_dir_path('lib/isdk/conn.cfg.php'); ?></code>.</div>

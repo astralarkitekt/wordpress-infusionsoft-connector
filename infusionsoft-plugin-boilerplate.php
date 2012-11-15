@@ -281,13 +281,7 @@ class InfusionsoftConnector {
 		}
 
 		if( !$ready ) {
-
 			//add_action('admin_notice', );
-
-		} else {
-
-
-
 		}
 
 		// edit the output of the settings page in views/settings_page.php
@@ -310,6 +304,7 @@ class InfusionsoftConnector {
 		// make sure the options have been initialised
 		if( !isset( $this->options ) )
 			$this->options = get_options( $this->plugin_pre . 'settings', $this->default_options );
+		$options = $this->options;
 
 		// grab the settings section page fragment and output to user
 		include_once plugin_dir_path(__FILE__) . 'views/_settings_page_form.php';
@@ -325,7 +320,32 @@ class InfusionsoftConnector {
 	 * @return Array
 	 */
 	public function sanitize_settings( $setting ) {
+		
+		foreach( $setting as $key => &$set ) {
+			$set = trim($set);
+		}
+
+		if( 'cfgCon' == INFUSIONAUTHMETHOD ) {
+
+			$connString = '$connInfo = array("' . $setting['infusionsoft_application_name'] 
+				. ':' . $setting['infusionsoft_application_name'] . ':i:' . $setting['infusionsoft_api_key'] . ':This is the default API connection for ' 
+				. bloginfo('name') . ' at ' . home_url() . '");';
+
+			$fh = fopen( 'lib/isdk/conn.cfg.php', 'w+');
+			if( !fwrite($fh, $connString) ) {
+				add_action('admin_notice', array( &$this, 'file_permissions_nag' ) );
+			}
+			fclose($fh);
+		}
+
 		return $setting;
+
+	}
+
+	public function flie_permissions_nag() {
+	?>
+	<div class="error">Please <a href="http://codex.wordpress.org/Changing_File_Permissions" target="_blank">check the Permissions</a> on your plugins directory. We can't write your API Connection string to the file required by the Infusionsoft API: <code><?php echo plugin_dir_path('lib/isdk/conn.cfg.php'); ?></code>.</div>
+	<?php
 	}
 
 	/**

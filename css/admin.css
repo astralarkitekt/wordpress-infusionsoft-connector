@@ -10,10 +10,12 @@ form.infusionsoft-settings-page table.form-table {
 form.infusionsoft-settings-page .form-row {
 	margin-bottom: 1em;
 	border-bottom: 1px dotted #666;
+	padding-bottom: 1em;
 }
 
 form.infusionsoft-settings-page .form-row:last-child {
 	border-bottom: 0;
+	text-align: right;
 }
 
 form.infusionsoft-settings-page .form-row label {

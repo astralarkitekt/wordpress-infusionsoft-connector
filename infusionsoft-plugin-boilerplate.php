@@ -36,12 +36,12 @@ License: GPL v3
 // if you do not have one yet, you can get one here:
 // http://help.infusionsoft.com/developers/vendorkey
 // Comment Out if Using Traditional API-Key style calls
-define( 'INFUSIONVENDORKEY', '7df953fdfa57d53f68fed1a86b88fd5a' );
+//define( 'INFUSIONVENDORKEY', 'XXXXXXXXXXXXXXXXXXXXXXXXXXXX' );
 
 // Valid values:
 // 'cfgCon' - use the traditional API-KEY method
 // 'vendorCon' - connect using a vendor Key (default)
-define( 'INFUSIONAUTHMETHOD', 'vendorCon' );
+define( 'INFUSIONAUTHMETHOD', 'cfgCon' );
 
 /**
  * Wrapper Class for Integrating Infusionsoft into Your WP Plugin
@@ -170,15 +170,15 @@ class InfusionsoftConnector {
 			// from infusionsoft here: http://help.infusionsoft.com/developers/vendorkey
 			// Once Infusionsoft has provided you with a vendor key, be sure to define
 			// it above (just below the plugin header & license in this file)
-			add_settings_field('infusionsoft_application_name', '', array( &$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
-			add_settings_field('infusionsoft_username', '', array( &$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
-			add_settings_field('infusionsoft_password', '', array( &$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			// add_settings_field('infusionsoft_application_name', '', array( &$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			// add_settings_field('infusionsoft_username', '', array( &$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			// add_settings_field('infusionsoft_password', '', array( &$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
 
 			// To use the original API Key style connection, comment out
 			// the three lines above, then uncomment the lines below to use 
 			// the API Key style connection instead
-			// add_settings_field('infusionsoft_api_key', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
-			// add_settings_field('infusionsoft_application_name', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			add_settings_field('infusionsoft_application_name', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
+			add_settings_field('infusionsoft_api_key', '', array(&$this, 'render_null'), $this->settings_page_slug, $this->plugin_pre . 'settings' );
 
 		
 
@@ -256,7 +256,8 @@ class InfusionsoftConnector {
 		$this->default_options = array(
 			'infusionsoft_application_name' => '',
 			'infusionsoft_username' => '',
-			'infusionsoft_password' => ''
+			'infusionsoft_password' => '',
+			'infusionsoft_api_key' => ''
 			);
 
 		// grab your plugin options 

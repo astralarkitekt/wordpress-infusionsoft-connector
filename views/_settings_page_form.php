@@ -9,6 +9,13 @@
 	<div class="description">Your Application Name is the first part of the URL you use to log in to your Infusionsoft account. (e.g. If my url was https://innerbot.infusionsoft.com, <em>innerbot</em> would be my Application Name )</div>
 </div>
 
+<?php if( 'cfgCon' == INFUSIONAUTHMETHOD ): ?>
+
+<div class="form-row">
+	<label for="APIKEY"></label>
+</div>
+
+<?php else: ?>
 <div class="form-row">
 	<label for="username">Application Username</label>
 	<input type="text" name="<?php echo $this->plugin_pre . 'settings'; ?>[infusionsoft_username]" id="username" value="<?php esc_attr( $options['infusionsoft_username'] ); ?>" autocomplete="off">
@@ -20,3 +27,4 @@
 	<input type="password" name="<?php echo $this->plugin_pre . 'settings'; ?>[infusionsoft_password]" id="password" value="<?php esc_attr( $options['infusionsoft_password'] ); ?>" autocomplete="off">
 	<div class="description">This is the password you use to log in to your Infusionsoft Application</div>
 </div>
+<?php endif; ?>

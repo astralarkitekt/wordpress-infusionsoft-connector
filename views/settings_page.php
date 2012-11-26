@@ -1,7 +1,10 @@
-<div class="wrap">
+<div class="wrap" id="<?php echo $this->plugin_pre; ?>-wrapper">
+	
 	<h2 class="page-title"><?php _e( 'Infusionsoft API Settings', $this->text_domain ) ?></h2>
 
 	<form id="<?php echo $this->plugin_pre; ?>settings" name="<?php echo $this->plugin_pre; ?>settings" class="infusionsoft-settings-page" action="options.php" method="post">
+		
+		<?php $this->get_connection_status(); ?>
 
 		<?php settings_errors(); ?>
 

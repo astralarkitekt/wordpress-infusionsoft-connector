@@ -15,12 +15,30 @@ class iSDK {
 //////////CONNECTOR/////////////
 ////////////////////////////////
 
+var $test_string;
+
+public function iSDK() {
+  $this->test_string = sha1(time());
+}
 
 ###Connect from an entry in the config file###
-public function cfgCon($name,$dbOn="on") {
+// Or, if set, connect using $name & $api params
+public function cfgCon($name, $dbOn="on", $api_key = '', $conn_to = 'i') {
+  
   $this->debug = $dbOn;
-  include('conn.cfg.php');
+
+  // backwards compat
+  // use the standard conn.cfg.php file
+  if( empty($api_key) ) {
+    include('conn.cfg.php');
+
+  // use the params from the function call to build the $connInfo array
+  } else {
+    $connInfo = array( "$name:$name:$conn_to:$api_key:Connection for $name Application" );
+  }
+
   $appLines = $connInfo;
+
   foreach($appLines as $appLine){
     $details[substr($appLine,0,strpos($appLine,":"))] = explode(":",$appLine);
   }
@@ -50,18 +68,30 @@ public function cfgCon($name,$dbOn="on") {
   $this->key = $details[$name][3];
 
 //connection verification
-  $result = $this->dsGetSetting('Contact', 'optiontypes');
-  if (strpos($result, 'InvalidKey') == 12) {
-    return FALSE;
-  } else { return TRUE; }
+  $test_conn = $this->appEcho($this->test_string);
 
-  return TRUE;
+  if( $test_conn == $this->test_string ) {
+    return true;
+  } else {
+    return false;
+  }
+
 }
 
 ###Connect and Obtain an API key from a vendor key###
-public function vendorCon($name,$user,$pass,$dbOn="on") {
+public function vendorCon($name,$user,$pass,$dbOn="on", $api_key = '', $conn_to = 'i') {
   $this->debug = $dbOn;
-  include('conn.cfg.php');
+
+  // backwards compat
+  // use the standard conn.cfg.php file
+  if( empty($api_key) ) {
+    include('conn.cfg.php');
+
+  // use the params from the function call to build the $connInfo array
+  } else {
+    $connInfo = array( "$name:$name:$conn_to:$api_key:Connection for $name Application" );
+  }
+  
   $appLines = $connInfo;
   foreach($appLines as $appLine){
     $details[substr($appLine,0,strpos($appLine,":"))] = explode(":",$appLine);
@@ -75,7 +105,6 @@ public function vendorCon($name,$user,$pass,$dbOn="on") {
 ".mortgageprocrm.com/api/xmlrpc");
     } else { return FALSE;}
   }
-
 
   ###Return Raw PHP Types###
   $this->client->return_type = "phpvals";
@@ -220,12 +249,12 @@ public function updateCon($cid, $cMap) {
 }
 ###function to merge existing contacts
 public function mergeCon($cid, $dcid) {
-	$carray = array(
-			php_xmlrpc_encode($this->key),
-			php_xmlrpc_encode($cid),
-			php_xmlrpc_encode($dcid));
-	
-	return $this->methodCaller("ContactService.merge",$carray);
+  $carray = array(
+      php_xmlrpc_encode($this->key),
+      php_xmlrpc_encode($cid),
+      php_xmlrpc_encode($dcid));
+  
+  return $this->methodCaller("ContactService.merge",$carray);
 }
 ###Finds all contacts for an Email###
 public function findByEmail($eml, $fMap) {
@@ -818,10 +847,10 @@ public function attachEmail($cId, $fromName, $fromAddress, $toAddress, $ccAddres
 
 ###Function to obtain Available Merge Fields###
 public function getAvailableMergeFields($mergeContext) {
-	$carray = array(
-			php_xmlrpc_encode($this->key),
-			php_xmlrpc_encode($mergeContext));
-	return $this->methodCaller("APIEmailService.getAvailableMergeFields", $carray);
+  $carray = array(
+      php_xmlrpc_encode($this->key),
+      php_xmlrpc_encode($mergeContext));
+  return $this->methodCaller("APIEmailService.getAvailableMergeFields", $carray);
 }
 
 ###This function will send an email to an array contacts###

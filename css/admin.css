@@ -1,6 +1,7 @@
 form.infusionsoft-settings-page {
 	font-size: 16px;
 	max-width: 720px;
+	position: relative;
 }
 
 form.infusionsoft-settings-page table.form-table {
@@ -29,3 +30,23 @@ form.infusionsoft-settings-page .form-row .description {
 	color: #666;
 	padding: 1em 0;
 }
+
+#connection-status {
+	background: darkgreen;
+	font-size: .75em;
+	color: #fff;
+	float: right;
+	width: auto;
+	padding: 1em;
+	max-width: 50%;
+}
+
+#connection-status.error {
+	background: #ff0000;
+}
+
+#connection-status.error span {
+	display: block;
+}
+
+#connection-status span.status { font-weight: bold; }

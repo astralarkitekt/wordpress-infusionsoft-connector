@@ -62,7 +62,7 @@ class InfusionsoftConnector {
 	public $settings_page_hook;
 	public $plugin_pre = 'ibic_';
 	public $text_domain = 'ibiclang';
-	public $isdk; // Holds an instance of the PHP Infusionsoft API
+	public $api; // Holds an instance of the PHP Infusionsoft API
 	 
 	/*--------------------------------------------*
 	 * Constructor
@@ -152,7 +152,7 @@ class InfusionsoftConnector {
 	public function register_plugin_options() {
 
 		// all of our plugin settings will be wrapped inside of this option as an array
-		register_setting($this->plugin_pre . 'settings', $this->plugin_pre . 'settings', array( &$this, 'sanitize_settings') );
+		register_setting($this->plugin_pre . 'settings', $this->plugin_pre . 'settings', array( &$this, 'before_save_settings') );
 
 		// We're going to use a work-around on the Settings API and render all the settings for this
 		// section in one function so that we can have more control over the design.
@@ -232,7 +232,7 @@ class InfusionsoftConnector {
 	public function register_plugin_scripts() {
 	
 		// Here is a default javascript file for this plugin that runs on the frontend.
-		wp_register_script( 'infusionsoft-connector-plugin-script', plugins_url('js/display.js', __FILE__ ) );
+		wp_register_script( 'infusionsoft-connector-plugin-script', plugins_url('js/display.js', __FILE__ ), array( 'jquery') );
 		wp_enqueue_script( 'infusionsoft-connector-plugin-script' );
 	
 	} // end register_plugin_scripts
@@ -249,7 +249,7 @@ class InfusionsoftConnector {
 			wp_die('Y u no Admin? Only Admin come in here!');
 
 		// ensure that we have an instance of the Infusionsoft API to Play with
-		if( !isset( $this->isdk ) ) $this->get_isdk();
+		if( !isset( $this->api ) ) $this->get_api_conn();
 
 		// If your plugin requires default settings, use the defaults
 		// array below 
@@ -299,7 +299,7 @@ class InfusionsoftConnector {
 			wp_die('Y u no Admin? Only Admin come in here!');
 
 		// ensure that we have an instance of the Infusionsoft API to Play with
-		if( !isset( $this->isdk ) ) $this->get_isdk();
+		if( !isset( $this->api ) ) $this->get_api_conn();
 
 		// make sure the options have been initialised
 		if( !isset( $this->options ) )
@@ -319,7 +319,7 @@ class InfusionsoftConnector {
 	 * @param  Array $setting
 	 * @return Array
 	 */
-	public function sanitize_settings( $setting ) {
+	public function before_save_settings( $setting ) {
 		
 		foreach( $setting as $key => &$set ) {
 			$set = trim($set);
@@ -327,15 +327,23 @@ class InfusionsoftConnector {
 
 		if( 'cfgCon' == INFUSIONAUTHMETHOD ) {
 
-			$connString = '$connInfo = array("' . $setting['infusionsoft_application_name'] 
+			$connString = '<?php $connInfo = array("' . $setting['infusionsoft_application_name'] 
 				. ':' . $setting['infusionsoft_application_name'] . ':i:' . $setting['infusionsoft_api_key'] . ':This is the default API connection for ' 
-				. bloginfo('name') . ' at ' . home_url() . '");';
+				. get_bloginfo('name') . ' at ' . urlencode(home_url()) . '");';
+			
+			$conn_file = plugin_dir_path(__FILE__) . 'lib/isdk/conn.cfg.php';
 
-			$fh = fopen( 'lib/isdk/conn.cfg.php', 'w+');
-			if( !fwrite($fh, $connString) ) {
+			if(is_writable($conn_file)) {
+
+				$fh = fopen( $conn_file, 'w+');
+				if( !fwrite($fh, $connString) ) {
+					add_action('admin_notice', array( &$this, 'file_permissions_nag' ) );
+				}
+				fclose($fh);
+
+			} else {
 				add_action('admin_notice', array( &$this, 'file_permissions_nag' ) );
 			}
-			fclose($fh);
 		}
 
 		return $setting;
@@ -343,7 +351,69 @@ class InfusionsoftConnector {
 	}
 
 	public function get_connection_status() {
-		//TODO: Implement ME!
+
+		$settings = get_option($this->plugin_pre . "settings");
+
+		// make sure we have an API instance to play with
+		$this->get_api_conn();
+
+		if( 'cfgCon' == INFUSIONAUTHMETHOD ) {
+			$app_name = $settings['infusionsoft_application_name'];
+			$api_key = $settings['infusionsoft_api_key'];
+
+			if( !empty( $app_name) && !empty($api_key) ) {
+				
+				try { 
+
+					if( $this->api->cfgCon($app_name) ) {
+
+						$status = "Connected";
+						$classify = '';
+
+					} else {
+						$status = "Not Connected";
+						$classify = 'error';
+					}
+				} catch( Exception $e ) {
+					$status = $e->getMessage();
+					$classify = "error";
+				}
+
+			} else {
+				$status = "Missing Settings";
+				$classify = "error";
+			}
+
+		} elseif( 'vendorCon' == INFUSIONAUTHMETHOD ) {
+
+			$app_name = $settings['infusionsoft_application_name'];
+			$username = $settings['infusionsoft_username'];
+			$password = $settings['infusionsoft_password'];
+
+			if( !empty($app_name) && !empty($username) && !empty($password) ) {
+				
+				if( $this->api->vendorCon($app_name, $username, $password) ) {
+					$status = "Connected";
+					$classify = '';
+				} else {
+					$status = "Not Connected";
+					$classify = "error";
+				}
+
+			} else {
+				$status = "Missing Settings";
+				$classify = "error";
+			}
+
+		} else {
+			$status = "Invalid Auth Method";
+			$classify= "error";
+		}
+
+		
+		?>
+		<div id="connection-status"<?php echo (!empty($classify)) ? 'class="error"' : ''; ?>>Status: <span class="status"><?php echo $status; ?></span></div>
+		<?php
 	}
 
 	public function flie_permissions_nag() {
@@ -354,14 +424,15 @@ class InfusionsoftConnector {
 
 	/**
 	 * Sets up an instance of Infusionsoft's API wrapper class if one
-	 * has not already been defined and assigns it to $this->isdk
+	 * has not already been defined and assigns it to $this->api
 	 */
-	public function get_isdk() {
+	public function get_api_conn() {
+
 		if( !class_exists('iSDK') )
 			require_once plugin_dir_path(__FILE__) . 'lib/isdk/isdk.php';
 
-		if( !isset($this->isdk) ) 
-			$this->isdk = new iSDK();
+		if( !( $this->api instanceof iSDK) ) 
+			$this->api = new iSDK();
 
 		return true;
 	}
@@ -397,4 +468,4 @@ class InfusionsoftConnector {
 } // end class
 
 // TODO: update the instantiation call of your plugin to the name given at the class definition
-$ibic = new InfusionsoftConnector();
+$infu_connector = new InfusionsoftConnector();

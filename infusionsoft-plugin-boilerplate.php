@@ -434,7 +434,7 @@ class InfusionsoftConnector {
 		if( !( $this->api instanceof iSDK) ) 
 			$this->api = new iSDK();
 
-		return true;
+		return $this->api;
 	}
 	
 	/*--------------------------------------------*

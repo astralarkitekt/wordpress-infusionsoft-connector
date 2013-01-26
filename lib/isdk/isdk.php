@@ -2,8 +2,8 @@
 ##########################################################################
 #########        Object Oriented PHP SDK for Infusionsoft        #########
 #########           Created by Justin Morris on 09-10-08         #########
-#########           Updated by Michael Fairchild on 10-09-12     #########
-#########           Version 1.7.14                               #########
+#########           Updated by Michael Fairchild on 01-07-13     #########
+#########           Version 1.28.x    (Same as app version)      #########
 ##########################################################################
 
 if(!function_exists('xmlrpc_encode_entitites')) {
@@ -21,42 +21,35 @@ public function iSDK() {
   $this->test_string = sha1(time());
 }
 
-###Connect from an entry in the config file###
-// Or, if set, connect using $name & $api params
-public function cfgCon($name, $dbOn="on", $api_key = '', $conn_to = 'i') {
+###Connect by using the Connection file or by passing in the variables###
+public function cfgCon($name, $key = "", $dbOn="on", $type = "i") {
+
+  $this->debug = (($key == 'on' || $key == 'off' || $key == 'kill') ? $key : $dbOn);
+
   
-  $this->debug = $dbOn;
-
-  // backwards compat
-  // use the standard conn.cfg.php file
-  if( empty($api_key) ) {
-    include('conn.cfg.php');
-
-  // use the params from the function call to build the $connInfo array
-  } else {
-    $connInfo = array( "$name:$name:$conn_to:$api_key:Connection for $name Application" );
+  if($key != "" && $key != "on" && $key != "off" && $key != 'kill') {
+  	$this->key = $key;
+  }else{
+  	include('conn.cfg.php');
+  	$appLines = $connInfo;
+  	foreach($appLines as $appLine){
+  		$details[substr($appLine,0,strpos($appLine,":"))] = explode(":",$appLine);
+  	}
+  	$appname = $details[$name][1];
+  	$type = $details[$name][2];
+  	$this->key = $details[$name][3];
   }
-
-  $appLines = $connInfo;
-
-  foreach($appLines as $appLine){
-    $details[substr($appLine,0,strpos($appLine,":"))] = explode(":",$appLine);
+  
+  switch ($type){
+  	case 'm':
+  		$this->client = new xmlrpc_client("https://$appname.mortgageprocrm.com/api/xmlrpc");
+  		break;
+  	case 'i':
+  	default:
+  		if (!isset($appname)){ $appname = $name;}
+  		$this->client = new xmlrpc_client("https://$appname.infusionsoft.com/api/xmlrpc");
+  		break;
   }
-
-  if (!empty($details[$name])) {
-    if ($details[$name][2]=="i") {
-      $this->client = new xmlrpc_client("https://" . $details[$name][1] .
-".infusionsoft.com/api/xmlrpc");
-    } elseif ($details[$name][2]=="m") {
-      $this->client = new xmlrpc_client("https://" . $details[$name][1] .
-".mortgageprocrm.com/api/xmlrpc");
-    } else {
-        throw new Exception("Invalid configuration for name: \"" . $name . "\"");
-    }
-  } else {
-    throw new Exception("Invalid configuration name: \"" . $name . "\"");
-  }
-
 
   ###Return Raw PHP Types###
   $this->client->return_type = "phpvals";
@@ -64,46 +57,53 @@ public function cfgCon($name, $dbOn="on", $api_key = '', $conn_to = 'i') {
   ###Dont bother with certificate verification###
   $this->client->setSSLVerifyPeer(FALSE);
   //$this->client->setDebug(2);
-  ###API Key###
-  $this->key = $details[$name][3];
-
-//connection verification
-  $test_conn = $this->appEcho($this->test_string);
-
-  if( $test_conn == $this->test_string ) {
-    return true;
-  } else {
-    return false;
+  
+  ###Connection verification###
+  try{
+    $connected = $this->dsGetSetting("Contact","optiontypes");
+  }catch (Exception $e){
+    throw new Exception("Connection Failed");
   }
+
+  return true;
 
 }
 
 ###Connect and Obtain an API key from a vendor key###
-public function vendorCon($name,$user,$pass,$dbOn="on", $api_key = '', $conn_to = 'i') {
-  $this->debug = $dbOn;
-
-  // backwards compat
-  // use the standard conn.cfg.php file
-  if( empty($api_key) ) {
-    include('conn.cfg.php');
-
-  // use the params from the function call to build the $connInfo array
-  } else {
-    $connInfo = array( "$name:$name:$conn_to:$api_key:Connection for $name Application" );
-  }
+public function vendorCon($name,$user,$pass,$key= "", $dbOn="on",$type="i") {
   
-  $appLines = $connInfo;
-  foreach($appLines as $appLine){
-    $details[substr($appLine,0,strpos($appLine,":"))] = explode(":",$appLine);
-  }
-  if (!empty($details[$name])) {
-    if ($details[$name][2]=="i") {
-      $this->client = new xmlrpc_client("https://" . $details[$name][1] .
-".infusionsoft.com/api/xmlrpc");
-    } elseif ($details[$name][2]=="m") {
-      $this->client = new xmlrpc_client("https://" . $details[$name][1] .
-".mortgageprocrm.com/api/xmlrpc");
-    } else { return FALSE;}
+  $this->debug = (($key == 'on' || $key == 'off' || $key == 'kill') ? $key : $dbOn);
+
+  
+  if($key != "" && $key != "on" && $key != "off" && $key != 'kill') {
+  	if($type=="i") {
+  		$this->client = new xmlrpc_client("https://$name.infusionsoft.com/api/xmlrpc");
+  	} else if($type=="m") {
+  		$this->client = new xmlrpc_client("https://$name.mortgageprocrm.com/api/xmlrpc");
+  	} else {
+  		throw new Exception ("Invalid application type: \"$name\"");
+  	}  
+  	$this->key = $key;	
+  }else{
+  	include('conn.cfg.php');
+  	$appLines = $connInfo;
+  	foreach($appLines as $appLine){
+  		$details[substr($appLine,0,strpos($appLine,":"))] = explode(":",$appLine);
+  	}
+  	if (!empty($details[$name])) {
+	    if ($details[$name][2]=="i") {
+	      $this->client = new xmlrpc_client("https://" . $details[$name][1] .
+	".infusionsoft.com/api/xmlrpc");
+	    } elseif ($details[$name][2]=="m") {
+	      $this->client = new xmlrpc_client("https://" . $details[$name][1] .
+	".mortgageprocrm.com/api/xmlrpc");
+	    } else {
+	        throw new Exception("Invalid application name: \"" . $name . "\"");
+	    }
+	  } else {
+	    throw new Exception("Application Does Not Exist: \"" . $name . "\"");
+	  }
+	  $this->key = $details[$name][3];
   }
 
   ###Return Raw PHP Types###
@@ -111,9 +111,6 @@ public function vendorCon($name,$user,$pass,$dbOn="on", $api_key = '', $conn_to 
 
   ###Dont bother with certificate verification###
   $this->client->setSSLVerifyPeer(FALSE);
-
-  ###API Key###
-  $this->key = $details[$name][3];
 
   $carray = array(
     php_xmlrpc_encode($this->key),
@@ -122,11 +119,12 @@ public function vendorCon($name,$user,$pass,$dbOn="on", $api_key = '', $conn_to 
 
   $this->key = $this->methodCaller("DataService.getTemporaryKey",$carray);
 
-  if ($this->appEcho("connected?")) {
-    return TRUE;
-  } else { return FALSE; }
-
-  return TRUE;
+  try{
+    $connected = $this->dsGetSetting("Contact","optiontypes");
+  }catch (Exception $e){
+    throw new Exception("Connection Failed");
+  }
+  	return TRUE;
 }
 
 ###Worthless public function, used to validate a connection###
@@ -249,12 +247,12 @@ public function updateCon($cid, $cMap) {
 }
 ###function to merge existing contacts
 public function mergeCon($cid, $dcid) {
-  $carray = array(
-      php_xmlrpc_encode($this->key),
-      php_xmlrpc_encode($cid),
-      php_xmlrpc_encode($dcid));
-  
-  return $this->methodCaller("ContactService.merge",$carray);
+	$carray = array(
+			php_xmlrpc_encode($this->key),
+			php_xmlrpc_encode($cid),
+			php_xmlrpc_encode($dcid));
+	
+	return $this->methodCaller("ContactService.merge",$carray);
 }
 ###Finds all contacts for an Email###
 public function findByEmail($eml, $fMap) {
@@ -481,6 +479,19 @@ public function dsQuery($tName,$limit,$page,$query,$rFields) {
                     php_xmlrpc_encode($rFields));
 
     return $this->methodCaller("DataService.query",$carray);
+}
+public function dsQueryOrderBy($tName,$limit,$page,$query,$rFields,$orderByField,$ascending = TRUE) {
+	$carray = array(
+        php_xmlrpc_encode($this->key),
+        php_xmlrpc_encode($tName),
+        php_xmlrpc_encode((int)$limit),
+        php_xmlrpc_encode((int)$page),
+        php_xmlrpc_encode($query,array('auto_dates')),
+        php_xmlrpc_encode($rFields),
+	    php_xmlrpc_encode($orderByField),
+	    php_xmlrpc_encode((bool)$ascending));
+	
+	    return $this->methodCaller("DataService.query",$carray);
 }
 
 ###Adds a custom field to Infusionsoft###
@@ -847,10 +858,10 @@ public function attachEmail($cId, $fromName, $fromAddress, $toAddress, $ccAddres
 
 ###Function to obtain Available Merge Fields###
 public function getAvailableMergeFields($mergeContext) {
-  $carray = array(
-      php_xmlrpc_encode($this->key),
-      php_xmlrpc_encode($mergeContext));
-  return $this->methodCaller("APIEmailService.getAvailableMergeFields", $carray);
+	$carray = array(
+			php_xmlrpc_encode($this->key),
+			php_xmlrpc_encode($mergeContext));
+	return $this->methodCaller("APIEmailService.getAvailableMergeFields", $carray);
 }
 
 ###This function will send an email to an array contacts###
@@ -1499,10 +1510,12 @@ public function getShippingTotalDiscount($id) {
      * @param processSpecials Whether or not the order should consider discounts that would normally be applied if this order
      *        was being placed through the shopping cart.
      * @param promoCodes Any promo codes to add to the cart, only used if processing of specials is turned on.
+	 * @param leadAff is the Lead Affiliate.
+	 * @param saleAff is the Affiliate of the sale.
      * @return The result of the order placement.
      *
      */
-public function placeOrder($contactId, $creditCardId, $payPlanId, $productIds, $subscriptionIds, $processSpecials, $promoCodes){
+public function placeOrder($contactId, $creditCardId, $payPlanId, $productIds, $subscriptionIds, $processSpecials, $promoCodes, $leadAff = 0, $saleAff = 0){
   $carray = array(
     php_xmlrpc_encode($this->key),
     php_xmlrpc_encode((int)$contactId),
@@ -1511,7 +1524,10 @@ public function placeOrder($contactId, $creditCardId, $payPlanId, $productIds, $
     php_xmlrpc_encode($productIds),
     php_xmlrpc_encode($subscriptionIds),
     php_xmlrpc_encode($processSpecials),
-    php_xmlrpc_encode($promoCodes));
+    php_xmlrpc_encode($promoCodes),
+    php_xmlrpc_encode((int)$leadAff),
+    php_xmlrpc_encode((int)$saleAff));
+ 
   return $this->methodCaller("OrderService.placeOrder",$carray);
 }
 
@@ -1542,6 +1558,63 @@ public function requestCreditCardId($token){
     php_xmlrpc_encode($this->key),
     php_xmlrpc_encode($token));
   return $this->methodCaller("CreditCardSubmissionService.requestCreditCardId",$carray);
+}
+
+/////////////////////Funnel Service - Campaign Builder////////////////////////////
+/**
+ *This method achieves a goal inside of the Campaign Builder to start a campaign
+ *@param contactId The contact you are adding the credit card to
+ *@param successUrl The URL the browser is sent to upon successfully adding a credit card record
+ *@param contactId The contact you are adding to the campaign
+ *@return the token to use in your http post which sends the cc to the app
+ */
+public function achieveGoal($integration, $callName, $contactId){
+	$carray = array(
+			php_xmlrpc_encode($this->key),
+			php_xmlrpc_encode((string)$integration),
+			php_xmlrpc_encode((string)$callName),
+			php_xmlrpc_encode((int)$contactId));
+	return $this->methodCaller("FunnelService.achieveGoal",$carray);
+}
+
+//////////////////////Affiliate Program Service///////////////////////////////////
+/**
+ * Gets a list of all of the affiliates with their contact data for the specified program.  This includes all of the custom fields defined for the contact and affiliate records that are retrieved.
+ * @param $programId This is the Id of the Comission Program that you want to list all affiliates for
+ */
+public function getAffiliatesByProgram($programId){
+	$carray= array(
+			php_xmlrpc_encode($this->key),
+			php_xmlrpc_encode($programId));
+	return $this->methodCaller("AffiliateProgramService.getAffiliatesByProgram",$carray);
+}
+/**
+ * Gets a list of all of the Affiliate Programs for the Affiliate specified.
+ * @param $affiliateId This is the Id of the Affiliate you wish to get all Commission Programs for
+ */
+public function getProgramsForAffiliate($affiliateId){
+	$carray= array(
+			php_xmlrpc_encode($this->key),
+			php_xmlrpc_encode($affiliateId));
+	return $this->methodCaller("AffiliateProgramService.getProgramsForAffiliate",$carray);
+}
+/**
+ * Gets a list of all of the Affiliate Programs that are in the application.
+ */
+public function getAffiliatePrograms(){
+	$carray= array(
+			php_xmlrpc_encode($this->key));
+	return $this->methodCaller("AffiliateProgramService.getAffiliatePrograms",$carray);
+}
+/**
+ * Gets a list of all of the resources that are associated to the Affiliate Program specified.
+ * @param $programId The Comission Program that you would like the resources for
+ */
+public function getResourcesForAffiliateProgram($programId){
+	$carray= array(
+			php_xmlrpc_encode($this->key),
+			php_xmlrpc_encode($programId));
+	return $this->methodCaller("AffiliateProgramService.getResourcesForAffiliateProgram",$carray);
 }
 
 }

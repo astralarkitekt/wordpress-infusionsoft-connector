@@ -1,1 +1,5 @@
-<?php $connInfo = array("transform:transform:i:f4a3a177af3188c4408487bb0e052c60:This is the default API connection for Innerbot at http%3A%2F%2Fibthemedev");
+<?php
+
+$connInfo = array('connectionName:applicationName:i:e6256f1d838a342155f51d800945c777:This is the connection for applicationName.infusionsoft.com');
+
+?>
